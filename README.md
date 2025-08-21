@@ -78,8 +78,8 @@ import fiftyone.zoo as foz
 # Load the dataset (automatically downloads if not cached)
 dataset = foz.load_zoo_dataset(
     "https://github.com/AdonaiVera/bddoia-fiftyone",
-    split="validation",  # or "train", "test"
-    max_samples=1000  # limit for quick exploration
+    split="validation",                                 # or "train", "test"
+    max_samples=10000                                   # limit for quick exploration
 )
 
 # Launch the FiftyOne App

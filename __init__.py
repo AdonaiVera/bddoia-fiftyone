@@ -112,7 +112,7 @@ def _process_objects(frame_objects: List[Dict[str, Any]], image_info: Dict[str, 
     """Process frame objects and return detections and polylines."""
     detections, polylines = [], []
 
-    w, h = image_info.get("height"), image_info.get("width")
+    w, h = float(image_info.get("height")), float(image_info.get("width"))
     
     for obj in frame_objects:
         if "box2d" in obj and "category" in obj:
@@ -166,25 +166,16 @@ def _create_sample_data(ann: Dict[str, Any], image_info: Dict[str, Any],
         "split": split_name,
         "image_id": ann.get("id", "")
     }
+    
+    sample_data["ground_truth"] = fo.Classification(label=_process_category_vector(ann.get("category", "unknown"), category_mapping))
+    sample_data["unsafe_action"] = fo.Classification(label=_process_category_vector(ann.get("unsafe", "unknown"), category_mapping))
+    sample_data["reasons"] = _process_reason_vector(ann.get("reason", "unknown"))    
 
-    sample_data["ground_truth"] = fo.Classification(label=_process_category_vector(ann["category"], category_mapping))
-    sample_data["unsafe_action"] = fo.Classification(label=_process_category_vector(ann["unsafe"], category_mapping))
-    sample_data["reasons"] = _process_reason_vector(ann["reason"])
-    
-    for frame in ann["frames"]:
-        if "objects" in frame:
-            detections, polylines = _process_objects(frame["objects"], image_info)
-            if detections:
-                sample_data["detections"] = fo.Detections(detections=detections)
-            if polylines:
-                sample_data["polylines"] = fo.Polylines(polylines=polylines)
-    
-    attrs = ann["attributes"]
+    attrs = ann.get("attributes", {})
     sample_data["weather"] = fo.Classification(label=attrs.get("weather", "undefined"))
     sample_data["scene"] = fo.Classification(label=attrs.get("scene", "undefined"))
     sample_data["timeofday"] = fo.Classification(label=attrs.get("timeofday", "undefined"))    
     return sample_data
-
 
 def download_and_prepare(dataset_dir: str, split: Optional[str] = None, 
                         classes: Optional[List[str]] = None, 
