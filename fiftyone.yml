@@ -1,29 +1,21 @@
-name: bddoia_safe_unsafe
+name: AdonaiVera/bddoia-fiftyone
 type: dataset
 author: BDD-OIA
 version: 1.0.0
 url: https://github.com/AdonaiVera/bddoia-fiftyone
-source: https://twizwei.github.io/bddoia_project/
-license: Creative Commons Attribution 4.0 International
-description: |
-  A comprehensive COCO-format extension of the BDD-OIA dataset with explicit 
-  unsafe action labels and reason explanations. Designed for benchmarking 
-  safety-aware vision-language models in autonomous driving scenarios.
-  
-  This dataset contains 22,924 images across train/val/test splits, each with:
-  - One safe action (forward, stop, left, right, confuse)
-  - One corresponding unsafe action (flipped for safety evaluation)
-  - Multi-hot reason vector of 21 explanation categories
-  
-  Perfect for evaluating VLM safety understanding in driving contexts.
+source: https://github.com/AdonaiVera/bddoia-fiftyone
+license: MIT
+description: BDDOIA Safe/Unsafe Action Dataset for FiftyOne - A comprehensive COCO-format extension of the BDD-OIA dataset with explicit unsafe action labels and reason explanations. Designed for benchmarking safety-aware vision-language models in autonomous driving scenarios.
 fiftyone:
   version: "*"
 supports_partial_downloads: true
 tags:
   - image
+  - detection
   - classification
-  - image-classification
-  - object-detection
+  - autonomous-driving
+  - safety
+  - action-recognition
 splits:
   - train
   - validation
