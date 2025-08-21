@@ -69,7 +69,7 @@ def download_and_prepare(dataset_dir, split=None, classes=None, max_samples=None
                     pass
         return None, total_samples, ACTION_CLASSES
     
-    dataset_url = "https://cdn.voxel51.com/dataset/bddoia-fiftyone-v1.zip"
+    dataset_url = "https://cdn.voxel51.com/datasets/bddoia-fiftyone-v1.zip"
     zip_path = os.path.join(dataset_dir, "bddoia-fiftyone-v1.zip")
     
     if not os.path.exists(zip_path):

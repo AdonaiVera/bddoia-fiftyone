@@ -77,8 +77,8 @@ import fiftyone.zoo as foz
 
 # Load the dataset (automatically downloads if not cached)
 dataset = foz.load_zoo_dataset(
-    "bddoia_safe_unsafe",
-    split="val",  # or "train", "test"
+    "https://github.com/AdonaiVera/bddoia-fiftyone",
+    split="validation",  # or "train", "test"
     max_samples=1000  # limit for quick exploration
 )
 
@@ -89,13 +89,13 @@ session = fo.launch_app(dataset)
 ### Load Specific Split
 ```python
 # Load training data
-train_dataset = foz.load_zoo_dataset("bddoia_safe_unsafe", split="train")
+train_dataset = foz.load_zoo_dataset("https://github.com/AdonaiVera/bddoia-fiftyone", split="train")
 
 # Load test data
-test_dataset = foz.load_zoo_dataset("bddoia_safe_unsafe", split="test")
+test_dataset = foz.load_zoo_dataset("https://github.com/AdonaiVera/bddoia-fiftyone", split="test")
 
 # Load all splits
-all_splits = foz.load_zoo_dataset("bddoia_safe_unsafe")
+all_splits = foz.load_zoo_dataset("https://github.com/AdonaiVera/bddoia-fiftyone")
 ```
 
 ## 🔍 Dataset Exploration
