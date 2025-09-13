@@ -1,6 +1,8 @@
 # BDDOIA Safe/Unsafe Action Dataset for FiftyOne
 
 This dataset is designed for benchmarking safety-aware vision-language models within the FiftyOne ecosystem, particularly for autonomous driving safety evaluation.
+![bddi-ezgif com-video-to-webp-converter](https://github.com/user-attachments/assets/fea52cd0-3e9d-4d16-804a-ab91c3dd8db3)
+
 
 ## 📊 Dataset Overview
 
