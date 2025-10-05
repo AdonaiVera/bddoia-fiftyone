@@ -21,7 +21,7 @@ SPLIT_MAPPING = {
     "test": "test_25k_images.json"
 }
 
-ACTION_CLASSES = ["forward", "stop", "left", "right", "confuse"]
+ACTION_CLASSES = ["forward", "stop", "left", "right"]
 
 REASON_CLASSES = [
     "Traffic light is green",
@@ -76,7 +76,7 @@ def _count_samples_in_files(annotation_files: List[str], dataset_dir: str) -> in
     """Count total samples across annotation files."""
     total_samples = 0
     for f in annotation_files:
-        file_path = os.path.join(dataset_dir, f)
+        file_path = os.path.join(dataset_dir, "bddoia-fiftyone-v2", f)
         if os.path.exists(file_path):
             try:
                 with open(file_path, 'r') as file:
@@ -87,14 +87,17 @@ def _count_samples_in_files(annotation_files: List[str], dataset_dir: str) -> in
     return total_samples
 
 
-def _process_category_vector(category_vec: Any, category_mapping: Dict[int, str]) -> Optional[str]:
-    """Process category vector and return action name."""
-    if isinstance(category_vec, list) and 1 in category_vec:
-        safe_idx = category_vec.index(1)
-        return category_mapping.get(safe_idx)
+def _process_category_vector(category_vec: Any, category_mapping: Dict[int, str]) -> List[str]:
+    """Process category vector and return list of action names (multilabel)."""
+    labels = []
+    if isinstance(category_vec, list):
+        for i, val in enumerate(category_vec):
+            if val == 1 and i in category_mapping and category_mapping[i] != "confuse":
+                labels.append(category_mapping[i])
     elif isinstance(category_vec, int):
-        return category_mapping.get(category_vec)
-    return None
+        if category_vec in category_mapping and category_mapping[category_vec] != "confuse":
+            labels.append(category_mapping[category_vec])
+    return labels
 
 
 def _process_reason_vector(reason_vec: List[int]) -> List[str]:
@@ -156,7 +159,7 @@ def _create_sample_data(ann: Dict[str, Any], image_info: Dict[str, Any],
                        dataset_dir: str, split_name: str, 
                        category_mapping: Dict[int, str]) -> Optional[Dict[str, Any]]:
     """Create sample data from annotation."""
-    filepath = os.path.join(dataset_dir, "data", image_info["file_name"])
+    filepath = os.path.join(dataset_dir, "bddoia-fiftyone-v2", "data", image_info["file_name"])
     
     if not os.path.exists(filepath):
         return None
@@ -167,14 +170,18 @@ def _create_sample_data(ann: Dict[str, Any], image_info: Dict[str, Any],
         "image_id": ann.get("id", "")
     }
     
-    sample_data["ground_truth"] = fo.Classification(label=_process_category_vector(ann.get("category", "unknown"), category_mapping))
-    sample_data["unsafe_action"] = fo.Classification(label=_process_category_vector(ann.get("unsafe", "unknown"), category_mapping))
+    sample_data["ground_truth"] = fo.Classifications(
+        classifications=[fo.Classification(label=label) for label in _process_category_vector(ann.get("category", []), category_mapping)]
+    )
+    sample_data["unsafe_action"] = fo.Classifications(
+        classifications=[fo.Classification(label=label) for label in _process_category_vector(ann.get("unsafe", []), category_mapping)]
+    )
     sample_data["reasons"] = _process_reason_vector(ann.get("reason", "unknown"))    
 
     attrs = ann.get("attributes", {})
-    sample_data["weather"] = fo.Classification(label=attrs.get("weather", "undefined"))
-    sample_data["scene"] = fo.Classification(label=attrs.get("scene", "undefined"))
-    sample_data["timeofday"] = fo.Classification(label=attrs.get("timeofday", "undefined"))    
+    sample_data["weather"] = fo.Classification(label=attrs.get("weather", "clear"))
+    sample_data["scene"] = fo.Classification(label=attrs.get("scene", "city street"))
+    sample_data["timeofday"] = fo.Classification(label=attrs.get("timeofday", "daytime"))    
     return sample_data
 
 def download_and_prepare(dataset_dir: str, split: Optional[str] = None, 
@@ -187,14 +194,14 @@ def download_and_prepare(dataset_dir: str, split: Optional[str] = None,
         raise ValueError(f"Invalid split '{split}'. Supported splits: {list(SPLIT_MAPPING.keys())}")
     
     annotation_files = [SPLIT_MAPPING[split]] if split else list(SPLIT_MAPPING.values())
-    images_dir = os.path.join(dataset_dir, "data")
+    images_dir = os.path.join(dataset_dir, "bddoia-fiftyone-v2", "data")
     
-    if all(os.path.exists(os.path.join(dataset_dir, f)) for f in annotation_files) and os.path.exists(images_dir):
+    if all(os.path.exists(os.path.join(dataset_dir, "bddoia-fiftyone-v2", f)) for f in annotation_files) and os.path.exists(images_dir):
         total_samples = _count_samples_in_files(annotation_files, dataset_dir)
         return None, total_samples, ACTION_CLASSES
     
-    dataset_url = "https://cdn.voxel51.com/datasets/bddoia-fiftyone-v1.zip"
-    zip_path = os.path.join(dataset_dir, "bddoia-fiftyone-v1.zip")
+    dataset_url = "https://cdn.voxel51.com/datasets/bddoia-fiftyone-v2.zip"
+    zip_path = os.path.join(dataset_dir, "bddoia-fiftyone-v2.zip")
     
     if not os.path.exists(zip_path):
         if not _download_file(dataset_url, zip_path):
@@ -234,7 +241,7 @@ def load_dataset(dataset: fo.Dataset, dataset_dir: str, split: Optional[str] = N
     total_loaded = 0
     for split_name in splits_to_load:
         annotation_file = SPLIT_MAPPING[split_name]
-        annotation_path = os.path.join(dataset_dir, annotation_file)
+        annotation_path = os.path.join(dataset_dir, "bddoia-fiftyone-v2", annotation_file)
         
         if not os.path.exists(annotation_path):
             continue
@@ -258,7 +265,7 @@ def load_dataset(dataset: fo.Dataset, dataset_dir: str, split: Optional[str] = N
         if classes is not None:
             annotations = [
                 ann for ann in annotations
-                if "category" in ann and _process_category_vector(ann["category"], category_mapping) in classes
+                if "category" in ann and any(label in classes for label in _process_category_vector(ann["category"], category_mapping))
             ]
         
         if max_samples is not None and len(annotations) > max_samples:
